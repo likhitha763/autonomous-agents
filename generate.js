@@ -9,7 +9,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // then gemini-2.5-flash-lite). The alias always points at their current
 // recommended Flash model, so it survives future retirements without a code change.
 const model = genAI.getGenerativeModel({
-  model: "gemini-flash-latest",
+  //model: "gemini-flash-latest",
+  model: "gemini-3.5-flash",
   systemInstruction: PERSONA_SYSTEM_PROMPT,
 });
 
