@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIGNAL POST — Decisions</title>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+
+<main>
+  <div class="topbar">
+    <div class="station-id">SIGNAL POST // <span>ADA-SEC</span></div>
+    <div class="pulse-row">
+      <span><span class="pulse-dot"></span>MONITORING</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <nav class="tabnav">
+    <a href="index.html">DASHBOARD</a>
+    <a href="feed.html">TRANSMISSION LOG</a>
+    <a href="decisions.html" class="active">DECISIONS</a>
+  </nav>
+
+  <div class="console">
+    <button class="btn" id="scanBtn" onclick="handleScan()">◎ RUN NEW SCAN</button>
+    <div class="agent-tag">UNIT ID: <b id="agentIdDisplay">not initialized</b></div>
+  </div>
+
+  <div class="console-status" id="consoleStatus"></div>
+
+  <div class="log-head">◈ EDITORIAL VERDICTS — LAST SCAN<span id="lastScanTime" style="color:var(--text-dim); font-weight:400;"></span></div>
+  <div id="decisionsList">
+    <div class="empty-note">NO SCAN RECORDED YET — RUN A SCAN TO SEE VERDICTS</div>
+  </div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+  tickClock("clock");
+  renderAgentTag("agentIdDisplay");
+
+  function setStatus(msg, cls) {
+    const el = document.getElementById("consoleStatus");
+    el.textContent = msg;
+    el.className = "console-status" + (cls ? " " + cls : "");
+  }
+
+  function renderDecisions() {
+    const decisions = getLastDecisions();
+    const list = document.getElementById("decisionsList");
+    const timeEl = document.getElementById("lastScanTime");
+    const lastAt = localStorage.getItem("lastDecisionsAt");
+
+    timeEl.textContent = lastAt ? " — " + new Date(lastAt).toLocaleString() : "";
+
+    if (!decisions.length) {
+      list.innerHTML = `<div class="empty-note">NO SCAN RECORDED YET — RUN A SCAN TO SEE VERDICTS</div>`;
+      return;
+    }
+
+    list.innerHTML = decisions.map(d => {
+      const cls = d.decision === "publish" ? "publish" : "reject";
+      const label = d.decision === "publish" ? "✓ PUBLISHED" : "✕ REJECTED";
+      return `
+        <div class="decision-row ${cls}">
+          <div class="decision-verdict ${cls}">${label}</div>
+          <div class="decision-topic">${escapeHtml(d.topic || "")}</div>
+          <div class="decision-reason">${escapeHtml(d.reason || "")}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function handleScan() {
+    if (!getAgentId()) {
+      setStatus("No unit initialized — go to Dashboard first.", "err");
+      return;
+    }
+    const btn = document.getElementById("scanBtn");
+    btn.disabled = true;
+    setStatus("Scanning live sources…");
+    try {
+      await apiGenerate();
+      renderDecisions();
+      setStatus("Scan complete.", "ok");
+    } catch (err) {
+      setStatus(`Scan failed: ${err.message}`, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  renderDecisions();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIGNAL POST — Transmission Log</title>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+
+<main>
+  <div class="topbar">
+    <div class="station-id">SIGNAL POST // <span>ADA-SEC</span></div>
+    <div class="pulse-row">
+      <span><span class="pulse-dot"></span>MONITORING</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <nav class="tabnav">
+    <a href="index.html">DASHBOARD</a>
+    <a href="feed.html" class="active">TRANSMISSION LOG</a>
+    <a href="decisions.html">DECISIONS</a>
+  </nav>
+
+  <div class="console">
+    <button class="btn" id="refreshBtn" onclick="loadFeed()">↻ REFRESH</button>
+    <div class="agent-tag">UNIT ID: <b id="agentIdDisplay">not initialized</b></div>
+  </div>
+
+  <div class="console-status" id="consoleStatus"></div>
+
+  <div class="log-head">◈ TRANSMISSION LOG — ALL PUBLISHED OUTPUT</div>
+  <div id="feedList">
+    <div class="empty-note">LOADING…</div>
+  </div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+  tickClock("clock");
+  renderAgentTag("agentIdDisplay");
+
+  function setStatus(msg, cls) {
+    const el = document.getElementById("consoleStatus");
+    el.textContent = msg;
+    el.className = "console-status" + (cls ? " " + cls : "");
+  }
+
+  async function loadFeed() {
+    const list = document.getElementById("feedList");
+    if (!getAgentId()) {
+      list.innerHTML = `<div class="empty-note">NO UNIT INITIALIZED — GO TO DASHBOARD TO INITIALIZE</div>`;
+      return;
+    }
+    list.innerHTML = `<div class="empty-note">LOADING…</div>`;
+    try {
+      const data = await apiFeed();
+      const posts = data.posts || [];
+      if (posts.length === 0) {
+        list.innerHTML = `<div class="empty-note">NO TRANSMISSIONS YET — RUN A SCAN FROM THE DASHBOARD</div>`;
+        return;
+      }
+      list.innerHTML = posts.map(p => {
+        const sources = Array.isArray(p.sources) ? p.sources : [];
+        const src = sources[0]
+          ? `<a class="tx-freq" href="${sources[0]}" target="_blank" rel="noopener">FREQ: ${sources[0]}</a>`
+          : `<span class="tx-freq" style="color:var(--text-dim)">FREQ: unlisted</span>`;
+        return `
+          <div class="tx">
+            <div class="tx-meta">
+              <span>TX #${p.id.slice(0, 8).toUpperCase()}</span>
+              <span>${new Date(p.createdAt).toLocaleString()}</span>
+            </div>
+            <div class="tx-text">${escapeHtml(p.text || "")}</div>
+            <div class="tx-decode"><b>DECODE:</b> ${escapeHtml(p.rationale || "—")}</div>
+            ${src}
+          </div>
+        `;
+      }).join("");
+      setStatus(`Loaded ${posts.length} transmission${posts.length === 1 ? "" : "s"}.`, "ok");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-note">SIGNAL LOST: ${escapeHtml(err.message)}</div>`;
+      setStatus(err.message, "err");
+    }
+  }
+
+  loadFeed();
+</script>
+
+</body>
+</html>
