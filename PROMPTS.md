@@ -805,4 +805,270 @@ that in order"
 (pasted the PROMPTS.md draft with entries out of chronological order)
 
 Outcome: Reordered all entries into actual chronological sequence and
-produced this consolidated file.
+produced a consolidated file.
+
+---
+
+## 65. Requesting the README
+
+Tool: Claude
+Prompt:
+"I saved you the rradme file before upload the readme file and give me."
+
+Outcome: Generated a full README documenting the persona, both API
+endpoints with request/response examples, the autonomy model (cron-driven,
+no manual calls needed after init), tech stack, and local setup
+instructions.
+
+---
+
+## 66. Gemini model deprecation — 2.5-flash-lite 404
+
+Tool: Claude
+Prompt (pasted terminal output):
+"{"error":"generation failed","detail":"Error: [GoogleGenerativeAI Error]:
+Error fetching from
+https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-
+lite:generateContent: [404 Not Found] This model models/gemini-2.5-flash-
+lite is no longer available to new users. Please update your code to use a
+newer model for the latest features and improvements."}"
+
+Outcome: Diagnosed this as a genuine model retirement, not a quota issue.
+Recommended switching to gemini-2.5-flash as an immediate fix, with a note
+that Google had set the 2.5 line's own retirement for later in 2026.
+
+---
+
+## 67. Multi-page dashboard request (external build, pasted in)
+
+Tool: Claude
+Prompt (pasted summary of prior work done elsewhere):
+"Got it — you want multiple real pages (Dashboard, Feed, Decisions) that
+link to each other, not everything crammed into one file... [describes a
+5-file site: index.html, feed.html, decisions.html, shared.css, shared.js]
+...i hav eto put these files in public and do npm start ?"
+
+Outcome: Confirmed the standard approach — move the 5 files into a
+`public/` folder, add `app.use(express.static("public"))` to server.js,
+then npm start and open localhost:3000. Flagged that shared.js's hardcoded
+API_BASE pointing at the Render URL should be simplified to a relative
+path once the frontend is served by the same Express app as the API.
+
+---
+
+## 68. Editing the agentId — dashboard UI confusion
+
+Tool: Claude
+Prompt:
+"where to edit the id ?"
+
+Outcome: Clarified the Unit ID field is a read-only display of whatever
+agentId is stored in localStorage, not an editable input; explained how to
+set it via the browser console instead.
+
+---
+
+## 69. Dashboard created a new, separate agent
+
+Tool: Claude
+Prompt: [screenshot of the ADA dashboard showing a new, empty Unit ID]
+"in unit id i cant edit the unit id"
+
+Outcome: Identified that clicking Initialize on the dashboard had created
+a brand-new agent, separate from the original one with existing published
+posts. Flagged the risk of ending up with multiple orphaned test agents,
+and gave the localStorage.setItem console command to point the dashboard
+back at the original agentId.
+
+---
+
+## 70. Scan failing in the browser
+
+Tool: Claude
+Prompt:
+"Scan failed: Failed to fetch"
+
+Outcome: Diagnosed as a same-origin/CORS issue — shared.js's API_BASE was
+hardcoded to the live Render URL while the dashboard was being served
+locally, causing a cross-origin fetch the browser blocked. Confirmed via a
+successful Postman request to the same endpoint (Postman doesn't enforce
+CORS) that the API itself was fine.
+
+---
+
+## 71. Confirming the fetch worked in Postman
+
+Tool: Claude
+Prompt: [screenshot of a successful Postman POST to /api/agent/init,
+200 OK]
+"in postman its working fine"
+
+Outcome: Used this to confirm the failure was browser-side (CORS), not a
+server or endpoint problem, and pointed at API_BASE in shared.js as the
+root cause.
+
+---
+
+## 72. Pasted shared.js content for the fix
+
+Tool: Claude
+Prompt (pasted terminal output):
+"Get-Content public\shared.js
+[full file content pasted, including the hardcoded API_BASE]"
+
+Outcome: Gave the exact one-line fix — change API_BASE from the hardcoded
+Render URL to an empty string, so all fetch calls become relative paths
+that work identically on localhost and on the live deployment.
+
+---
+
+## 73. Confirming init worked after the fix, generate taking long
+
+Tool: Claude
+Prompt:
+"initialization worked , now , scan amnd transmit i staking much time"
+
+Outcome: Explained typical generate-cycle latency (Gemini + HN + DB write,
+a few to ~20 seconds is normal) and gave checks (server terminal output,
+browser Network tab) to distinguish a genuinely stuck request from normal
+processing time.
+
+---
+
+## 74. Decisions page empty despite two scans
+
+Tool: Claude
+Prompt: [screenshot of the Decisions page mid-scan, showing an empty
+verdicts box for a prior completed scan]
+"why is this empty i ran two scans"
+
+Outcome: Flagged yet another new agentId appearing (localStorage drift),
+and asked whether the earlier gemini-2.5-flash fix had actually been
+applied and redeployed, suspecting the empty result was a silently failed
+generate call.
+
+---
+
+## 75. Confirming the actual error — Gemini 503
+
+Tool: Claude
+Prompt (pasted terminal output):
+"generation cycle failed: GoogleGenerativeAIFetchError: ... 503 Service
+Unavailable ... This model is currently experiencing high demand.
+[followed by Get-Content generate.js | Select-String "gemini-" output
+showing model: "gemini-flash-latest"]"
+
+Outcome: Confirmed the model name was already correctly set to a rolling
+"latest" alias (a smarter fix than the earlier one-off suggestion); the 503
+was a transient Google-side capacity issue, not a config problem. Suggested
+retrying, and offered an optional retry-with-backoff wrapper for
+resilience during the unattended cron window.
+
+---
+
+## 76. Successful generate — strong editorial judgment evidence
+
+Tool: Claude
+Prompt (pasted terminal output): full generate response showing 8 topics
+checked, 7 rejected with distinct specific reasons, 1 published with full
+rationale and source (frontier AI lab security probing story).
+
+Outcome: Flagged this as strong, submission-worthy evidence of genuine
+editorial judgment and persona consistency; asked which agentId the result
+was attached to before treating it as canonical.
+
+---
+
+## 77. Confirming the correct agentId
+
+Tool: Claude
+Prompt (pasted terminal output):
+"Get-Content generate.json
+{"agentId":"98accc1f-56d2-443a-b463-f2893589b7d5"}"
+
+Outcome: Confirmed the strong evaluation result belonged to the original
+submission agent, not one of the stray test agents created via the
+dashboard.
+
+---
+
+## 78. Trying to run a JS command in PowerShell
+
+Tool: Claude
+Prompt (pasted terminal output):
+"localStorage.setItem : The term 'localStorage.setItem' is not recognized
+as the name of a cmdlet..."
+
+Outcome: Clarified that localStorage.setItem is browser JavaScript and must
+be run in the browser's DevTools Console (F12 → Console tab), not in
+PowerShell — two separate environments for two different kinds of
+commands.
+
+---
+
+## 79. Confirming the console command worked, but page unreachable
+
+Tool: Claude
+Prompt: [two screenshots — DevTools console showing localStorage.setItem
+returning undefined; then browser showing "This site can't be reached /
+ERR_CONNECTION_REFUSED" for localhost:3000/index.html]
+"before and after refresh"
+
+Outcome: Diagnosed that the localStorage write itself succeeded, but the
+local Express server was no longer running (likely from the earlier
+EADDRINUSE crash never actually resolving into a running instance). Gave
+steps to find and kill any stale process on port 3000, then restart
+npm start properly before refreshing.
+
+---
+
+## 80. Full feed pulled after fixes, requirements re-check
+
+Tool: Claude
+Prompt (pasted terminal output): full /api/agent/feed response showing 8
+published posts under the correct agentId, spanning several distinct AI
+security topics with consistent voice, sources, and rationale.
+
+Outcome: Verified all feed-shape requirements again against this larger
+data set (order, unique IDs, timestamps, sources) and reiterated that the
+one remaining unproven requirement was genuine unattended autonomous
+operation, since all 8 posts still traced back to manual triggers made
+during testing that day.
+
+---
+
+## 81. Console command location clarified
+
+Tool: Claude
+Prompt:
+"localStorage.setItem("agentId", "98accc1f-56d2-443a-b463-f2893589b7d5")
+where to put this ?"
+
+Outcome: Gave explicit step-by-step instructions for opening DevTools and
+running the command in the Console tab specifically.
+
+---
+
+## 82. Confirming the fix held
+
+Tool: Claude
+Prompt:
+"ahhh yes its same now"
+
+Outcome: Confirmed the dashboard's Unit ID was now stable across reloads;
+recapped overall requirement status and recommended stopping all manual
+generate/init calls from this point forward to let the GitHub Actions cron
+run genuinely unattended for the remainder of the evaluation window.
+
+---
+
+## 83. Updating PROMPTS.md again
+
+Tool: Claude
+Prompt: [pasted the current PROMPTS.md through entry 64]
+"update the prompts md after this"
+
+Outcome: Appended entries 65 through this one, covering the README
+request, the Gemini model deprecation fix, the multi-page dashboard
+integration, the CORS/API_BASE debugging, the recurring port conflict, and
+the agentId/localStorage confusion — producing this consolidated file.
