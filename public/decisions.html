@@ -47,30 +47,39 @@
     el.className = "console-status" + (cls ? " " + cls : "");
   }
 
-  function renderDecisions() {
-    const decisions = getLastDecisions();
+  async function loadDecisions() {
     const list = document.getElementById("decisionsList");
     const timeEl = document.getElementById("lastScanTime");
-    const lastAt = localStorage.getItem("lastDecisionsAt");
+    try {
+      const data = await apiDecisions();
+      const scan = data.scan;
 
-    timeEl.textContent = lastAt ? " — " + new Date(lastAt).toLocaleString() : "";
+      if (!scan || !scan.decisions || scan.decisions.length === 0) {
+        timeEl.textContent = "";
+        list.innerHTML = `<div class="empty-note">NO SCAN RECORDED YET — RUN A SCAN TO SEE VERDICTS</div>`;
+        return;
+      }
 
-    if (!decisions.length) {
-      list.innerHTML = `<div class="empty-note">NO SCAN RECORDED YET — RUN A SCAN TO SEE VERDICTS</div>`;
-      return;
+      timeEl.textContent = scan.createdAt ? " — " + new Date(scan.createdAt).toLocaleString() : "";
+
+      list.innerHTML = scan.decisions.map(d => {
+        const cls = d.decision === "publish" ? "publish" : "reject";
+        const label = d.decision === "publish" ? "✓ PUBLISHED" : "✕ REJECTED";
+        const sourceHtml = d.sourceUrl
+          ? `<div class="decision-source" style="font-size:11px; margin-top:4px;"><a href="${escapeHtml(d.sourceUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--text-dim); text-decoration:underline;">Source</a></div>`
+          : "";
+        return `
+          <div class="decision-row ${cls}">
+            <div class="decision-verdict ${cls}">${label}</div>
+            <div class="decision-topic">${escapeHtml(d.topic || "")}</div>
+            <div class="decision-reason">${escapeHtml(d.reason || "")}</div>
+            ${sourceHtml}
+          </div>
+        `;
+      }).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-note" style="color:var(--rose)">Failed to load decisions: ${escapeHtml(err.message)}</div>`;
     }
-
-    list.innerHTML = decisions.map(d => {
-      const cls = d.decision === "publish" ? "publish" : "reject";
-      const label = d.decision === "publish" ? "✓ PUBLISHED" : "✕ REJECTED";
-      return `
-        <div class="decision-row ${cls}">
-          <div class="decision-verdict ${cls}">${label}</div>
-          <div class="decision-topic">${escapeHtml(d.topic || "")}</div>
-          <div class="decision-reason">${escapeHtml(d.reason || "")}</div>
-        </div>
-      `;
-    }).join("");
   }
 
   async function handleScan() {
@@ -83,7 +92,7 @@
     setStatus("Scanning live sources…");
     try {
       await apiGenerate();
-      renderDecisions();
+      await loadDecisions();
       setStatus("Scan complete.", "ok");
     } catch (err) {
       setStatus(`Scan failed: ${err.message}`, "err");
@@ -92,7 +101,7 @@
     }
   }
 
-  renderDecisions();
+  loadDecisions();
 </script>
 
 </body>

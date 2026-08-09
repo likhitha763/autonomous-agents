@@ -63,7 +63,26 @@ async function apiGenerate() {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || data.detail || `Server returned ${res.status}`);
-  saveLastDecisions(data.decisions || []);
+  return data;
+}
+
+async function apiDecisions() {
+  const agentId = getAgentId();
+
+  if (!agentId) {
+    return { scan: null };
+  }
+
+  const res = await fetch(
+    `${API_BASE}/api/agent/decisions?agentId=${encodeURIComponent(agentId)}`
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || `Server returned ${res.status}`);
+  }
+
   return data;
 }
 

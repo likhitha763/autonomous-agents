@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { createAgent, getAgent, getPosts } from "./db.js";
+import { createAgent, getAgent, getPosts, getLatestScan } from "./db.js";
 import { runGenerationCycle } from "./generate.js";
 
 const app = express();
@@ -43,6 +43,21 @@ app.get("/api/agent/feed", async (req, res) => {
   } catch (err) {
     console.error("feed failed:", err);
     res.status(500).json({ error: "feed failed", detail: String(err) });
+  }
+});
+
+app.get("/api/agent/decisions", async (req, res) => {
+  const { agentId } = req.query;
+  if (!agentId) return res.status(400).json({ error: "agentId query param is required" });
+  try {
+    const agent = await getAgent(agentId);
+    if (!agent) return res.status(404).json({ error: "unknown agentId" });
+
+    const scan = await getLatestScan(agentId);
+    res.json({ scan });
+  } catch (err) {
+    console.error("decisions failed:", err);
+    res.status(500).json({ error: "decisions failed", detail: String(err) });
   }
 });
 

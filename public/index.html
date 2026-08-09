@@ -223,7 +223,7 @@
     setStatus("Scanning live sources…");
     try {
       const data = await apiGenerate();
-      const decisions = data.decisions || [];
+      const decisions = data.evaluations || [];
       const published = decisions.filter(d => d.decision === "publish").length;
       const rejected = decisions.filter(d => d.decision === "reject").length;
       const checked = data.checked ?? decisions.length;

@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fetch from "node-fetch";
-import { addPost, getRecentTitles } from "./db.js";
+import { addPost, getRecentTitles, createScanRun, addScanDecision } from "./db.js";
 import { PERSONA_SYSTEM_PROMPT } from "./persona.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -75,7 +75,41 @@ export async function runGenerationCycle(agent) {
 
   const judgment = await judgeAllTopics(topics, recentTitles);
 
-  if (judgment.publish && judgment.publish.index !== null && judgment.publish.index !== undefined) {
+  const isPublishing =
+    judgment.publish &&
+    judgment.publish.index !== null &&
+    judgment.publish.index !== undefined;
+  const publishedCount = isPublishing ? 1 : 0;
+
+  const scan = await createScanRun(agent.id, topics.length, publishedCount);
+
+  const evaluationsWithTopics = [];
+  if (Array.isArray(judgment.evaluations)) {
+    for (const evaluation of judgment.evaluations) {
+      const topicObj = topics[evaluation.index] || {};
+      const topicTitle = topicObj.title || "";
+      const sourceUrl = topicObj.url || null;
+      const decision = evaluation.decision;
+      const reason = evaluation.reason;
+
+      await addScanDecision(scan.id, agent.id, {
+        topic: topicTitle,
+        sourceUrl: sourceUrl,
+        decision: decision,
+        reason: reason,
+      });
+
+      evaluationsWithTopics.push({
+        index: evaluation.index,
+        topic: topicTitle,
+        sourceUrl: sourceUrl,
+        decision: decision,
+        reason: reason,
+      });
+    }
+  }
+
+  if (isPublishing) {
     const chosen = topics[judgment.publish.index];
     if (chosen) {
       await addPost(agent.id, {
@@ -86,5 +120,10 @@ export async function runGenerationCycle(agent) {
     }
   }
 
-  return { checked: topics.length, evaluations: judgment.evaluations, published: judgment.publish };
+  return {
+    checked: topics.length,
+    evaluations: evaluationsWithTopics,
+    published: judgment.publish,
+    scanId: scan.id,
+  };
 }
