@@ -5,6 +5,7 @@ import { runGenerationCycle } from "./generate.js";
 
 const app = express();
 app.use(express.json());
+app.use(express.static("public"));
 
 // Called exactly once by the evaluator before evaluation begins.
 app.post("/api/agent/init", async (req, res) => {
