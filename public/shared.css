@@ -45,6 +45,16 @@ main {
   gap: 12px;
 }
 
+.site-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 6px;
+}
+
 .station-id {
   font-family: var(--mono);
   font-weight: 700;
