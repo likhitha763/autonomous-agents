@@ -387,7 +387,33 @@ pushed) to undo the commit while keeping files intact.
 
 ---
 
-## 31. Push timing question
+## 31. UI updates — logo and favicon
+
+Tool: Local edits via VS Code / Git
+Prompt: "add the new logo into the site header and make it the browser favicon"
+
+Outcome: Made small frontend updates to surface the project's logo in the
+app UI and browser tab:
+- Copied the repository `logo.png` into `public/logo.png` so it is served
+	as a static asset.
+- Inserted an `<img src="logo.png" class="site-logo" alt="Signal Post logo" />`
+	into the top bar of `public/index.html`, `public/feed.html`, and
+	`public/decisions.html` to replace the previous header area where the globe
+	icon was expected.
+- Added CSS rules for `.site-logo` in `public/shared.css` to size and style the
+	logo (rounded panel, padding, border) so it fits the topbar aesthetic.
+- Added a `<link rel="icon" type="image/png" href="logo.png" />` entry in
+	the `<head>` of the three public HTML pages so the browser tab shows the
+	logo as a favicon.
+
+Notes: These are non-functional cosmetic changes (static asset + markup + CSS)
+that make the site visually consistent with the provided logo. No backend or
+AI logic was modified. The changes were added as a continuation entry here in
+the running prompt log to document UI work performed during the hackathon.
+
+---
+
+## 32. Push timing question
 
 Tool: Claude
 Prompt:
@@ -399,7 +425,7 @@ frequency.
 
 ---
 
-## 32. All files committed at once unexpectedly
+## 33. All files committed at once unexpectedly
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -414,7 +440,7 @@ test files with real agentId) as clutter that shouldn't be tracked.
 
 ---
 
-## 33. When to add gitignore entries
+## 34. When to add gitignore entries
 
 Tool: Claude
 Prompt:
@@ -425,7 +451,7 @@ not after, since it only prevents future staging, not retroactive removal.
 
 ---
 
-## 34. Gitignore not taking effect
+## 35. Gitignore not taking effect
 
 Tool: Claude
 Prompt:
@@ -437,7 +463,7 @@ Outcome: Checked actual .gitignore contents, found duplicate entries
 
 ---
 
-## 35. Final push
+## 36. Final push
 
 Tool: Claude
 Prompt:
@@ -449,7 +475,7 @@ expected files are present, and generate.json/init.json are absent.
 
 ---
 
-## 36. Deployment status check
+## 37. Deployment status check
 
 Tool: Claude
 Prompt:
@@ -460,7 +486,7 @@ already-created Postgres instance.
 
 ---
 
-## 37. Postgres vs web service confusion
+## 38. Postgres vs web service confusion
 
 Tool: Claude
 Prompt:
@@ -472,7 +498,7 @@ resources; a new Web Service was still required to run server.js.
 
 ---
 
-## 38. Render service config questions
+## 39. Render service config questions
 
 Tool: Claude
 Prompt:
@@ -483,7 +509,7 @@ command node server.js (checked against package.json scripts).
 
 ---
 
-## 39. Env vars
+## 40. Env vars
 
 Tool: Claude
 Prompt:
@@ -495,7 +521,7 @@ port.
 
 ---
 
-## 40. Internal vs external DB URL
+## 41. Internal vs external DB URL
 
 Tool: Claude
 Prompt:
@@ -507,7 +533,7 @@ local/off-Render connections.
 
 ---
 
-## 41. Next steps after env setup
+## 42. Next steps after env setup
 
 Tool: Claude
 Prompt:
@@ -518,7 +544,7 @@ test sequence against production flow.
 
 ---
 
-## 42. How to verify deployment
+## 43. How to verify deployment
 
 Tool: Claude
 Prompt:
@@ -530,7 +556,7 @@ production.
 
 ---
 
-## 43. Ready to test live
+## 44. Ready to test live
 
 Tool: Claude
 Prompt:
@@ -541,7 +567,7 @@ Render URL.
 
 ---
 
-## 44. Sharing live URL
+## 45. Sharing live URL
 
 Tool: Claude
 Prompt:
@@ -552,7 +578,7 @@ against it.
 
 ---
 
-## 45. Init endpoint error, pasted raw curl output
+## 46. Init endpoint error, pasted raw curl output
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -567,7 +593,7 @@ persona name/domain fields in the body.
 
 ---
 
-## 46. Retried init, got "Not Found"
+## 47. Retried init, got "Not Found"
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -583,7 +609,7 @@ Render logs and retrying.
 
 ---
 
-## 47. Pasted Render logs screenshot + retry confirmation
+## 48. Pasted Render logs screenshot + retry confirmation
 
 Tool: Claude
 Prompt: [screenshot of Render logs dashboard] + terminal output confirming
@@ -596,7 +622,7 @@ startup/redeploy.
 
 ---
 
-## 48. Init succeeded
+## 49. Init succeeded
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -610,7 +636,7 @@ production.
 
 ---
 
-## 49. Generate + feed live test results
+## 50. Generate + feed live test results
 
 Tool: Claude
 Prompt (pasted terminal output): full generate response showing the
@@ -622,7 +648,7 @@ Postgres → feed) was working end to end in production.
 
 ---
 
-## 50. GitHub Actions cron setup
+## 51. GitHub Actions cron setup
 
 Tool: Claude
 Prompt:
@@ -635,7 +661,7 @@ manually trigger the cron workflow.
 
 ---
 
-## 51. How to check the workflow file
+## 52. How to check the workflow file
 
 Tool: Claude
 Prompt:
@@ -647,7 +673,7 @@ to view it.
 
 ---
 
-## 52. Pasted cron.yml content
+## 53. Pasted cron.yml content
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -660,7 +686,7 @@ workflow_dispatch, and secrets usage all correct — no changes needed.
 
 ---
 
-## 53. Secrets added, asking next step
+## 54. Secrets added, asking next step
 
 Tool: Claude
 Prompt:
@@ -671,7 +697,7 @@ and verify success.
 
 ---
 
-## 54. Pasted Actions run success screenshot
+## 55. Pasted Actions run success screenshot
 
 Tool: Claude
 Prompt: [screenshot showing "Trigger post generation #1 — succeeded now in
@@ -683,7 +709,7 @@ using the configured secrets.
 
 ---
 
-## 55. Feed check after cron trigger
+## 56. Feed check after cron trigger
 
 Tool: Claude
 Prompt (pasted terminal output): feed response showing second post (Apple/
@@ -695,7 +721,7 @@ end to end, with a second distinct topic published.
 
 ---
 
-## 56. Asking about the live demo link for submission
+## 57. Asking about the live demo link for submission
 
 Tool: Claude
 Prompt:
@@ -706,7 +732,7 @@ README needs to document both endpoints clearly since there's no UI.
 
 ---
 
-## 57. Pasted full hackathon requirements doc for a compliance check
+## 58. Pasted full hackathon requirements doc for a compliance check
 
 Tool: Claude
 Prompt: [pasted full hackathon problem statement/requirements document]
@@ -719,7 +745,7 @@ been observed yet.
 
 ---
 
-## 58. Asking for a solo action plan
+## 59. Asking for a solo action plan
 
 Tool: Claude
 Prompt:
@@ -733,7 +759,7 @@ finish the README.
 
 ---
 
-## 59. Frustration with repeated manual curl commands
+## 60. Frustration with repeated manual curl commands
 
 Tool: Claude
 Prompt:
@@ -747,7 +773,7 @@ Postman instead of rewriting PowerShell curl commands each time.
 
 ---
 
-## 60. Requesting Postman files
+## 61. Requesting Postman files
 
 Tool: Claude
 Prompt:
@@ -758,7 +784,7 @@ endpoints and baseUrl/agentId collection variables pre-filled.
 
 ---
 
-## 61. Postman import confusion, pasted screenshot
+## 62. Postman import confusion, pasted screenshot
 
 Tool: Claude
 Prompt: [screenshot of an unfamiliar sidebar UI]
@@ -769,7 +795,7 @@ web UI; asked which app it actually was before giving further steps.
 
 ---
 
-## 62. Git commit message request
+## 63. Git commit message request
 
 Tool: Claude
 Prompt:
@@ -780,7 +806,7 @@ committed (Postman collection, server.js fix, PROMPTS.md).
 
 ---
 
-## 63. Local port conflict error (again, this session)
+## 64. Local port conflict error (again, this session)
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -796,7 +822,7 @@ port if the default is in use.
 
 ---
 
-## 64. Reordering PROMPTS.md chronologically
+## 65. Reordering PROMPTS.md chronologically
 
 Tool: Claude
 Prompt:
@@ -809,7 +835,7 @@ produced a consolidated file.
 
 ---
 
-## 65. Requesting the README
+## 66. Requesting the README
 
 Tool: Claude
 Prompt:
@@ -822,7 +848,7 @@ instructions.
 
 ---
 
-## 66. Gemini model deprecation — 2.5-flash-lite 404
+## 67. Gemini model deprecation — 2.5-flash-lite 404
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -839,7 +865,7 @@ that Google had set the 2.5 line's own retirement for later in 2026.
 
 ---
 
-## 67. Multi-page dashboard request (external build, pasted in)
+## 68. Multi-page dashboard request (external build, pasted in)
 
 Tool: Claude
 Prompt (pasted summary of prior work done elsewhere):
@@ -856,7 +882,7 @@ path once the frontend is served by the same Express app as the API.
 
 ---
 
-## 68. Editing the agentId — dashboard UI confusion
+## 69. Editing the agentId — dashboard UI confusion
 
 Tool: Claude
 Prompt:
@@ -868,7 +894,7 @@ set it via the browser console instead.
 
 ---
 
-## 69. Dashboard created a new, separate agent
+## 70. Dashboard created a new, separate agent
 
 Tool: Claude
 Prompt: [screenshot of the ADA dashboard showing a new, empty Unit ID]
@@ -882,7 +908,7 @@ back at the original agentId.
 
 ---
 
-## 70. Scan failing in the browser
+## 71. Scan failing in the browser
 
 Tool: Claude
 Prompt:
@@ -896,7 +922,7 @@ CORS) that the API itself was fine.
 
 ---
 
-## 71. Confirming the fetch worked in Postman
+## 72. Confirming the fetch worked in Postman
 
 Tool: Claude
 Prompt: [screenshot of a successful Postman POST to /api/agent/init,
@@ -909,7 +935,7 @@ root cause.
 
 ---
 
-## 72. Pasted shared.js content for the fix
+## 73. Pasted shared.js content for the fix
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -922,7 +948,7 @@ that work identically on localhost and on the live deployment.
 
 ---
 
-## 73. Confirming init worked after the fix, generate taking long
+## 74. Confirming init worked after the fix, generate taking long
 
 Tool: Claude
 Prompt:
@@ -935,7 +961,7 @@ processing time.
 
 ---
 
-## 74. Decisions page empty despite two scans
+## 75. Decisions page empty despite two scans
 
 Tool: Claude
 Prompt: [screenshot of the Decisions page mid-scan, showing an empty
@@ -949,7 +975,7 @@ generate call.
 
 ---
 
-## 75. Confirming the actual error — Gemini 503
+## 76. Confirming the actual error — Gemini 503
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -966,7 +992,7 @@ resilience during the unattended cron window.
 
 ---
 
-## 76. Successful generate — strong editorial judgment evidence
+## 77. Successful generate — strong editorial judgment evidence
 
 Tool: Claude
 Prompt (pasted terminal output): full generate response showing 8 topics
@@ -979,7 +1005,7 @@ was attached to before treating it as canonical.
 
 ---
 
-## 77. Confirming the correct agentId
+## 78. Confirming the correct agentId
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -992,7 +1018,7 @@ dashboard.
 
 ---
 
-## 78. Trying to run a JS command in PowerShell
+## 79. Trying to run a JS command in PowerShell
 
 Tool: Claude
 Prompt (pasted terminal output):
@@ -1006,7 +1032,7 @@ commands.
 
 ---
 
-## 79. Confirming the console command worked, but page unreachable
+## 80. Confirming the console command worked, but page unreachable
 
 Tool: Claude
 Prompt: [two screenshots — DevTools console showing localStorage.setItem
@@ -1022,7 +1048,7 @@ npm start properly before refreshing.
 
 ---
 
-## 80. Full feed pulled after fixes, requirements re-check
+## 81. Full feed pulled after fixes, requirements re-check
 
 Tool: Claude
 Prompt (pasted terminal output): full /api/agent/feed response showing 8
@@ -1037,7 +1063,7 @@ during testing that day.
 
 ---
 
-## 81. Console command location clarified
+## 82. Console command location clarified
 
 Tool: Claude
 Prompt:
@@ -1049,7 +1075,7 @@ running the command in the Console tab specifically.
 
 ---
 
-## 82. Confirming the fix held
+## 83. Confirming the fix held
 
 Tool: Claude
 Prompt:
@@ -1062,7 +1088,7 @@ run genuinely unattended for the remainder of the evaluation window.
 
 ---
 
-## 83. Updating PROMPTS.md again
+## 84. Updating PROMPTS.md again
 
 Tool: Claude
 Prompt: [pasted the current PROMPTS.md through entry 64]
@@ -1072,3 +1098,299 @@ Outcome: Appended entries 65 through this one, covering the README
 request, the Gemini model deprecation fix, the multi-page dashboard
 integration, the CORS/API_BASE debugging, the recurring port conflict, and
 the agentId/localStorage confusion — producing this consolidated file.
+
+---
+
+## 85. Multi-page dashboard implementation
+
+Tool: Claude
+Prompt:
+"I want multiple real pages like Dashboard, Feed, and Decisions that link to each other instead of putting everything in one page."
+
+Outcome:
+Implemented a multi-page dashboard structure with separate pages for:
+- Dashboard
+- Feed
+- Decisions
+
+Added shared frontend files for common styling and JavaScript functionality.
+
+---
+
+## 86. Connecting frontend pages to the backend
+
+Tool: Claude
+Prompt:
+"i have these files and have to connect them with my backend, how do i do it?"
+
+Outcome:
+Connected the frontend pages to the existing Express backend and configured Express to serve the frontend through the `public` directory.
+
+The project now supports both:
+- Backend API endpoints
+- Browser-based dashboard pages
+
+---
+
+## 87. Dashboard initialization flow
+
+Tool: Claude
+Prompt:
+"make the dashboard initialize the agent and show the agent id"
+
+Outcome:
+Added dashboard initialization functionality so the application can initialize an agent from the UI and display the resulting Agent/Unit ID.
+
+The dashboard was connected to the existing `/api/agent/init` endpoint.
+
+---
+
+## 88. Agent ID persistence
+
+Tool: Claude
+Prompt:
+"the unit id should stay the same, don't create a new agent every time"
+
+Outcome:
+Changed the frontend flow so the existing agent ID is persisted in browser localStorage instead of creating a new agent unnecessarily.
+
+This keeps the dashboard connected to the same autonomous agent across page reloads.
+
+---
+
+## 89. Feed page integration
+
+Tool: Claude
+Prompt:
+"connect the feed page with the backend and show the generated posts"
+
+Outcome:
+Connected the Feed page to `/api/agent/feed`.
+
+The page now displays the agent's published posts along with their available metadata such as:
+- Post content
+- Publication time
+- Source
+- Editorial rationale
+
+---
+
+## 90. Decisions page integration
+
+Tool: Claude
+Prompt:
+"make the decisions page show the decisions from the generation cycle"
+
+Outcome:
+Added a Decisions page to visualize the agent's editorial decisions.
+
+The page was connected to the generation response and displays information about accepted and rejected topics and the reasoning behind those decisions.
+
+---
+
+## 91. Scan functionality
+
+Tool: Claude
+Prompt:
+"make the scan button work with the backend"
+
+Outcome:
+Connected the Scan functionality to the generation endpoint.
+
+Clicking Scan now starts an agent generation cycle instead of being a static UI action.
+
+The flow became:
+
+Dashboard → Scan → Backend → Topic discovery → AI evaluation → Decision → Result.
+
+---
+
+## 92. Transmit functionality
+
+Tool: Claude
+Prompt:
+"make the transmit button actually transmit the generated post"
+
+Outcome:
+Connected the Transmit functionality to the project's backend flow so that an approved generated result can be sent through the application's publishing pipeline.
+
+The UI now represents the autonomous agent's decision and publishing workflow rather than being only a visual mockup.
+
+---
+
+## 93. Scan and transmit interaction
+
+Tool: Claude
+Prompt:
+"scan and transmit should work together and update the dashboard"
+
+Outcome:
+Connected the Scan and Transmit interactions with the dashboard state.
+
+The interface now provides feedback while the generation/publishing process is running and updates the relevant sections after completion.
+
+---
+
+## 94. Fixing browser API connection
+
+Tool: Claude
+Prompt:
+"Scan failed: Failed to fetch"
+
+Outcome:
+Investigated the browser request failure.
+
+Postman confirmed that the backend endpoint itself was working, so the problem was isolated to the browser/frontend connection.
+
+The frontend API configuration was changed from a hardcoded Render URL to relative API paths when served by the same Express application.
+
+This allowed the same frontend to work with the local backend and deployed backend.
+
+---
+
+## 95. Fixing dashboard Agent ID mismatch
+
+Tool: Claude
+Prompt:
+"in unit id i cant edit the unit id"
+
+Outcome:
+Identified that the dashboard was creating/using a different agent ID from the original submission agent.
+
+The dashboard was pointed back to the original agent ID through localStorage so that the Dashboard, Feed, and Decisions pages all refer to the same agent.
+
+---
+
+## 96. Stabilizing Agent ID across reloads
+
+Tool: Claude
+Prompt:
+"localStorage.setItem('agentId', '...') where to put this?"
+
+Outcome:
+Configured the browser's localStorage with the intended agent ID.
+
+After refreshing the dashboard, the same Unit ID remained active instead of generating a new agent.
+
+---
+
+## 97. Improving generation feedback
+
+Tool: Claude
+Prompt:
+"initialization worked, now scan and transmit is taking much time"
+
+Outcome:
+Reviewed the generation flow and clarified that the operation involves multiple backend steps:
+- Topic discovery
+- AI generation/evaluation
+- Editorial decision
+- Database operations
+- Publishing
+
+Added/maintained user feedback so the interface does not appear completely unresponsive during the process.
+
+---
+
+## 98. Testing the complete dashboard flow
+
+Tool: Claude
+Prompt:
+"test the dashboard completely"
+
+Outcome:
+Tested the main application flow:
+
+1. Initialize/select the agent
+2. Open Dashboard
+3. Run Scan
+4. Process discovered topics
+5. Review editorial decisions
+6. Publish/transmit the selected result
+7. Verify the Feed
+8. Verify the Decisions page
+
+This confirmed that the frontend was connected to the existing autonomous-agent backend rather than functioning as an isolated UI.
+
+---
+
+## 99. Final frontend/backend integration
+
+Tool: Claude
+Prompt:
+"make sure all pages are connected and everything works together"
+
+Outcome:
+Consolidated the frontend and backend integration.
+
+The project now consists of:
+- Express backend
+- Autonomous agent generation logic
+- PostgreSQL persistence
+- Dashboard
+- Feed page
+- Decisions page
+- Shared frontend JavaScript
+- Shared styling
+- GitHub Actions automation
+
+The frontend communicates with the same backend used by the autonomous generation workflow.
+
+---
+
+## 100. Final autonomous workflow refinement
+
+Tool: Claude
+Prompt:
+"the scan and transmit button should be autonomous"
+
+Outcome:
+Refined the project around the autonomous-agent requirement rather than treating Scan and Transmit as simple manual UI actions.
+
+The application architecture separates:
+- Agent initialization
+- Topic discovery
+- Editorial evaluation
+- Publishing
+- Feed storage
+- Automated scheduled execution
+
+The GitHub Actions workflow remains responsible for unattended scheduled generation, while the dashboard provides visibility and testing controls.
+
+---
+
+## 101. Final project verification
+
+Tool: Claude
+Prompt:
+"for now this fine right?"
+
+Outcome:
+Reviewed the implemented project and confirmed that the core functionality was in place for the current stage.
+
+The project had:
+- Working backend APIs
+- PostgreSQL storage
+- AI-powered editorial decisions
+- Duplicate detection
+- Published feed
+- Dashboard UI
+- Feed UI
+- Decisions UI
+- Agent ID persistence
+- Render deployment
+- GitHub Actions automation
+- Prompt logging
+
+The remaining work was treated as refinement/testing rather than rebuilding the core application.
+
+---
+
+## 102. Final prompt-log update
+
+Tool: Claude
+Prompt:
+"update the prompts md after this"
+
+Outcome:
+Updated the prompt history to include the subsequent project-development work, keeping the entries chronological and documenting the AI-assisted development process required for the hackathon.
