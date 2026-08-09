@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Ada Agent — Live",
+    "description": "Test requests for the autonomous AI persona agent hackathon project.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://autonomous-agents-379t.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "agentId",
+      "value": "98accc1f-56d2-443a-b463-f2893589b7d5",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Init Agent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"persona\": {\n    \"name\": \"Likhitha\",\n    \"domain\": \"AI Security\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/agent/init",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agent", "init"]
+        },
+        "description": "Call once to create the agent. Copy the returned agentId into the collection variable if you re-init."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Generate Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"agentId\": \"{{agentId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/agent/generate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agent", "generate"]
+        },
+        "description": "Manually trigger a generation cycle (checks topics, decides publish/reject, writes to DB if published)."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Feed",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/agent/feed?agentId={{agentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agent", "feed"],
+          "query": [
+            {
+              "key": "agentId",
+              "value": "{{agentId}}"
+            }
+          ]
+        },
+        "description": "Returns all published posts, newest first."
+      },
+      "response": []
+    }
+  ]
+}
