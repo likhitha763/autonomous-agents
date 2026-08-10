@@ -1,23 +1,22 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fetch from "node-fetch";
 import { addPost, getRecentTitles, createScanRun, addScanDecision } from "./db.js";
-import { PERSONA_SYSTEM_PROMPT } from "./persona.js";
+import { getPersonaPrompt } from "./persona.js";
+import { getProfile } from "./profiles.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// Using the "-latest" alias instead of a pinned version — Google has
-// retired two specific model names on us already this build (gemini-2.0-flash,
-// then gemini-2.5-flash-lite). The alias always points at their current
-// recommended Flash model, so it survives future retirements without a code change.
-const model = genAI.getGenerativeModel({
-  //model: "gemini-flash-latest",
-  model: "gemini-3.5-flash",
-  systemInstruction: PERSONA_SYSTEM_PROMPT,
-});
 
-// Free, no-key, reliable source of current tech/AI discussion.
-async function fetchCandidateTopics() {
+function getModel(systemPrompt) {
+  return genAI.getGenerativeModel({
+    model: "gemini-3.5-flash",
+    systemInstruction: systemPrompt,
+  });
+}
+
+async function fetchCandidateTopics(searchQuery) {
+  const query = encodeURIComponent(searchQuery || "AI");
   const res = await fetch(
-    "https://hn.algolia.com/api/v1/search_by_date?tags=story&query=AI"
+    `https://hn.algolia.com/api/v1/search_by_date?tags=story&query=${query}`
   );
   const data = await res.json();
   return (data.hits || [])
@@ -29,11 +28,7 @@ async function fetchCandidateTopics() {
     .filter((t) => t.title);
 }
 
-// ONE API call evaluates ALL candidate topics at once, instead of one call
-// per topic. This is both cheaper (fits comfortably in free-tier RPM/RPD)
-// and arguably better editorial judgment — a real editor compares options
-// against each other, not one at a time in isolation.
-async function judgeAllTopics(topics, recentTitles) {
+async function judgeAllTopics(model, topics, recentTitles) {
   const topicList = topics
     .map((t, i) => `${i}. Title: ${t.title}\n   Source: ${t.url}`)
     .join("\n");
@@ -71,10 +66,15 @@ Respond with STRICT JSON only, no prose outside the JSON, in this exact shape:
 }
 
 export async function runGenerationCycle(agent) {
-  const topics = await fetchCandidateTopics();
+  const profileId = agent.profile_id || "ada";
+  const profile = getProfile(profileId);
+  const systemPrompt = getPersonaPrompt(profileId);
+  const model = getModel(systemPrompt);
+
+  const topics = await fetchCandidateTopics(profile.searchQuery);
   const recentTitles = await getRecentTitles(agent.id);
 
-  const judgment = await judgeAllTopics(topics, recentTitles);
+  const judgment = await judgeAllTopics(model, topics, recentTitles);
 
   const isPublishing =
     judgment.publish &&
@@ -126,5 +126,6 @@ export async function runGenerationCycle(agent) {
     evaluations: evaluationsWithTopics,
     published: judgment.publish,
     scanId: scan.id,
+    profileId,
   };
 }

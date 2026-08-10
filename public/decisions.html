@@ -12,7 +12,7 @@
 <main>
   <div class="topbar">
     <img src="logo.png" class="site-logo" alt="Signal Post logo" />
-    <div class="station-id">SIGNAL POST // <span>ADA-SEC</span></div>
+    <div class="station-id">SIGNAL POST // <span id="stationTag">ADA-SEC</span></div>
     <div class="pulse-row">
       <span><span class="pulse-dot"></span>MONITORING</span>
       <span id="clock">--:--:--</span>
@@ -24,6 +24,8 @@
     <a href="feed.html">TRANSMISSION LOG</a>
     <a href="decisions.html" class="active">DECISIONS</a>
   </nav>
+
+  <div class="profile-bar" id="profileBar"></div>
 
   <div class="console">
     <button class="btn" id="scanBtn" onclick="handleScan()">◎ RUN NEW SCAN</button>
@@ -41,7 +43,10 @@
 <script src="shared.js"></script>
 <script>
   tickClock("clock");
-  renderAgentTag("agentIdDisplay");
+
+  function onProfileChange() {
+    loadDecisions();
+  }
 
   function setStatus(msg, cls) {
     const el = document.getElementById("consoleStatus");
@@ -52,13 +57,62 @@
   async function loadDecisions() {
     const list = document.getElementById("decisionsList");
     const timeEl = document.getElementById("lastScanTime");
+    const selected = getSelectedProfileId();
+
+    if (selected === "all") {
+      timeEl.textContent = "";
+      list.innerHTML = `<div class="empty-note">LOADING ALL DECISIONS…</div>`;
+      try {
+        const data = await apiDecisions("all");
+        const scans = data.scans || [];
+        if (scans.length === 0) {
+          list.innerHTML = `<div class="empty-note">NO SCANS RECORDED YET ACROSS ANY UNITS — RUN A SCAN TO SEE VERDICTS</div>`;
+          return;
+        }
+
+        let html = "";
+        scans.forEach(scan => {
+          if (scan.decisions && scan.decisions.length > 0) {
+            html += `<div style="margin-top:20px; font-family:var(--mono); font-size:12px; color:var(--signal); border-bottom:1px dashed var(--grid); padding-bottom:4px; margin-bottom:8px;">UNIT: ${escapeHtml(scan.profileName)} — ${new Date(scan.createdAt).toLocaleString()}</div>`;
+            html += scan.decisions.map(d => {
+              const cls = d.decision === "publish" ? "publish" : "reject";
+              const label = d.decision === "publish" ? "✓ PUBLISHED" : "✕ REJECTED";
+              const sourceHtml = d.sourceUrl
+                ? `<div class="decision-source" style="font-size:11px; margin-top:4px;"><a href="${escapeHtml(d.sourceUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--text-dim); text-decoration:underline;">Source</a></div>`
+                : "";
+              return `
+                <div class="decision-row ${cls}">
+                  <div class="decision-verdict ${cls}">${label}</div>
+                  <div class="decision-topic">[${escapeHtml(scan.profileName)}] ${escapeHtml(d.topic || "")}</div>
+                  <div class="decision-reason">${escapeHtml(d.reason || "")}</div>
+                  ${sourceHtml}
+                </div>
+              `;
+            }).join("");
+          }
+        });
+        list.innerHTML = html || `<div class="empty-note">NO VERDICTS RECORDED YET</div>`;
+      } catch (err) {
+        list.innerHTML = `<div class="empty-note" style="color:var(--rose)">Failed to load decisions: ${escapeHtml(err.message)}</div>`;
+      }
+      return;
+    }
+
+    const profile = getProfile();
+
+    if (!getAgentId()) {
+      timeEl.textContent = "";
+      list.innerHTML = `<div class="empty-note">NO UNIT INITIALIZED FOR ${escapeHtml(profile.name)} — GO TO DASHBOARD TO INITIALIZE</div>`;
+      return;
+    }
+
     try {
       const data = await apiDecisions();
       const scan = data.scan;
 
       if (!scan || !scan.decisions || scan.decisions.length === 0) {
         timeEl.textContent = "";
-        list.innerHTML = `<div class="empty-note">NO SCAN RECORDED YET — RUN A SCAN TO SEE VERDICTS</div>`;
+        list.innerHTML = `<div class="empty-note">NO SCAN RECORDED YET FOR ${escapeHtml(profile.name)} — RUN A SCAN TO SEE VERDICTS</div>`;
         return;
       }
 

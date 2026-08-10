@@ -16,9 +16,13 @@ async function ensureSchema() {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL,
       domain TEXT NOT NULL,
+      profile_id TEXT,
+      unit_id TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE agents ADD COLUMN IF NOT EXISTS profile_id TEXT;`);
+  await pool.query(`ALTER TABLE agents ADD COLUMN IF NOT EXISTS unit_id TEXT;`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS posts (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -53,11 +57,13 @@ async function ensureSchema() {
   initialized = true;
 }
 
-export async function createAgent({ name, domain }) {
+export async function createAgent({ name, domain, profileId, unitId }) {
   await ensureSchema();
   const { rows } = await pool.query(
-    `INSERT INTO agents (name, domain) VALUES ($1, $2) RETURNING id, name, domain, created_at AS "createdAt"`,
-    [name, domain]
+    `INSERT INTO agents (name, domain, profile_id, unit_id)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, name, domain, profile_id AS "profileId", unit_id AS "unitId", created_at AS "createdAt"`,
+    [name, domain, profileId || null, unitId || null]
   );
   return rows[0];
 }

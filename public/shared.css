@@ -104,6 +104,42 @@ main {
 .tabnav a:hover { color: var(--text); }
 .tabnav a.active { color: var(--signal); border-bottom-color: var(--signal); }
 
+/* Profile selector */
+.profile-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.profile-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 8px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--grid);
+  background: var(--panel);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.profile-chip:hover { border-color: var(--text-dim); color: var(--text); }
+.profile-chip.active {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: var(--signal-dim);
+}
+.profile-chip.initialized:not(.active)::after {
+  content: " ●";
+  color: var(--signal);
+  font-size: 8px;
+  vertical-align: super;
+}
+
 /* Console */
 .console {
   display: flex;

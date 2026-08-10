@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { createAgent, getAgent, getPosts, getLatestScan } from "./db.js";
 import { runGenerationCycle } from "./generate.js";
+import { PROFILES, PROFILE_IDS, getProfile, generateUnitId } from "./profiles.js";
 
 const app = express();
 app.use(express.json());
@@ -9,17 +10,45 @@ app.use(express.static("public"));
 
 // Called exactly once by the evaluator before evaluation begins.
 app.post("/api/agent/init", async (req, res) => {
-  const { persona } = req.body || {};
-  if (!persona || !persona.name || !persona.domain) {
+  const { persona, profileId } = req.body || {};
+  const pid = profileId || "ada";
+  const profile = getProfile(pid);
+
+  const name = persona?.name || profile.name;
+  const domain = persona?.domain || profile.domain;
+
+  if (!name || !domain) {
     return res.status(400).json({ error: "persona.name and persona.domain are required" });
   }
   try {
-    const agent = await createAgent(persona);
-    res.json({ agentId: agent.id });
+    const unitId = generateUnitId(pid);
+    const agent = await createAgent({
+      name,
+      domain,
+      profileId: pid,
+      unitId,
+    });
+    res.json({ agentId: agent.id, unitId: agent.unitId, profileId: pid });
   } catch (err) {
     console.error("init failed:", err);
     res.status(500).json({ error: "init failed", detail: String(err) });
   }
+});
+
+app.get("/api/profiles", (_req, res) => {
+  res.json({
+    profiles: PROFILE_IDS.map((id) => {
+      const p = PROFILES[id];
+      return {
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        description: p.description,
+        domain: p.domain,
+        stationTag: p.stationTag,
+      };
+    }),
+  });
 });
 
 // The only endpoint the evaluator polls after init.

@@ -12,7 +12,7 @@
 <main>
   <div class="topbar">
     <img src="logo.png" class="site-logo" alt="Signal Post logo" />
-    <div class="station-id">SIGNAL POST // <span>ADA-SEC</span></div>
+    <div class="station-id">SIGNAL POST // <span id="stationTag">ADA-SEC</span></div>
     <div class="pulse-row">
       <span><span class="pulse-dot"></span>MONITORING</span>
       <span id="clock">--:--:--</span>
@@ -24,6 +24,8 @@
     <a href="feed.html" class="active">TRANSMISSION LOG</a>
     <a href="decisions.html">DECISIONS</a>
   </nav>
+
+  <div class="profile-bar" id="profileBar"></div>
 
   <div class="console">
     <button class="btn" id="refreshBtn" onclick="loadFeed()">↻ REFRESH</button>
@@ -41,7 +43,10 @@
 <script src="shared.js"></script>
 <script>
   tickClock("clock");
-  renderAgentTag("agentIdDisplay");
+
+  function onProfileChange() {
+    loadFeed();
+  }
 
   function setStatus(msg, cls) {
     const el = document.getElementById("consoleStatus");
@@ -51,8 +56,45 @@
 
   async function loadFeed() {
     const list = document.getElementById("feedList");
+    const selected = getSelectedProfileId();
+
+    if (selected === "all") {
+      list.innerHTML = `<div class="empty-note">LOADING ALL TRANSMISSIONS…</div>`;
+      try {
+        const data = await apiFeed("all");
+        const posts = data.posts || [];
+        if (posts.length === 0) {
+          list.innerHTML = `<div class="empty-note">NO TRANSMISSIONS YET ACROSS ANY UNITS — RUN A SCAN FROM THE DASHBOARD</div>`;
+          return;
+        }
+        list.innerHTML = posts.map(p => {
+          const sources = Array.isArray(p.sources) ? p.sources : [];
+          const src = sources[0]
+            ? `<a class="tx-freq" href="${sources[0]}" target="_blank" rel="noopener">FREQ: ${sources[0]}</a>`
+            : `<span class="tx-freq" style="color:var(--text-dim)">FREQ: unlisted</span>`;
+          return `
+            <div class="tx">
+              <div class="tx-meta">
+                <span><b style="color:var(--signal)">[${escapeHtml(p.profileName || "AGENT")}]</b> TX #${p.id.slice(0, 8).toUpperCase()}</span>
+                <span>${new Date(p.createdAt).toLocaleString()}</span>
+              </div>
+              <div class="tx-text">${escapeHtml(p.text || "")}</div>
+              <div class="tx-decode"><b>DECODE:</b> ${escapeHtml(p.rationale || "—")}</div>
+              ${src}
+            </div>
+          `;
+        }).join("");
+        setStatus(`Loaded ${posts.length} transmission${posts.length === 1 ? "" : "s"} across all units.`, "ok");
+      } catch (err) {
+        list.innerHTML = `<div class="empty-note">SIGNAL LOST: ${escapeHtml(err.message)}</div>`;
+        setStatus(err.message, "err");
+      }
+      return;
+    }
+
+    const profile = getProfile();
     if (!getAgentId()) {
-      list.innerHTML = `<div class="empty-note">NO UNIT INITIALIZED — GO TO DASHBOARD TO INITIALIZE</div>`;
+      list.innerHTML = `<div class="empty-note">NO UNIT INITIALIZED FOR ${escapeHtml(profile.name)} — GO TO DASHBOARD TO INITIALIZE</div>`;
       return;
     }
     list.innerHTML = `<div class="empty-note">LOADING…</div>`;
@@ -60,7 +102,7 @@
       const data = await apiFeed();
       const posts = data.posts || [];
       if (posts.length === 0) {
-        list.innerHTML = `<div class="empty-note">NO TRANSMISSIONS YET — RUN A SCAN FROM THE DASHBOARD</div>`;
+        list.innerHTML = `<div class="empty-note">NO TRANSMISSIONS YET FOR ${escapeHtml(profile.name)} — RUN A SCAN FROM THE DASHBOARD</div>`;
         return;
       }
       list.innerHTML = posts.map(p => {
@@ -80,7 +122,7 @@
           </div>
         `;
       }).join("");
-      setStatus(`Loaded ${posts.length} transmission${posts.length === 1 ? "" : "s"}.`, "ok");
+      setStatus(`Loaded ${posts.length} transmission${posts.length === 1 ? "" : "s"} for ${profile.name}.`, "ok");
     } catch (err) {
       list.innerHTML = `<div class="empty-note">SIGNAL LOST: ${escapeHtml(err.message)}</div>`;
       setStatus(err.message, "err");

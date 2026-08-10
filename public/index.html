@@ -95,7 +95,7 @@
 <main>
   <div class="topbar">
     <img src="logo.png" class="site-logo" alt="Signal Post logo" />
-    <div class="station-id">SIGNAL POST // <span>ADA-SEC</span></div>
+    <div class="station-id">SIGNAL POST // <span id="stationTag">ADA-SEC</span></div>
     <div class="pulse-row">
       <span><span class="pulse-dot"></span>MONITORING</span>
       <span id="clock">--:--:--</span>
@@ -107,6 +107,8 @@
     <a href="feed.html">TRANSMISSION LOG</a>
     <a href="decisions.html">DECISIONS</a>
   </nav>
+
+  <div class="profile-bar" id="profileBar"></div>
 
   <div class="radar-hero">
     <div class="radar-wrap">
@@ -121,9 +123,9 @@
       </div>
     </div>
     <div class="radar-readout">
-      <h1>ADA</h1>
-      <div class="role">AI SECURITY RESEARCHER — SIGNAL TRIAGE UNIT</div>
-      <p>Scans live sources for AI/security signals, triages each one, and transmits only what clears editorial threshold. Every scan plots its verdicts on the array.</p>
+      <h1 id="profileName">ADA</h1>
+      <div class="role" id="profileRole">AI SECURITY RESEARCHER — SIGNAL TRIAGE UNIT</div>
+      <p id="profileDesc">Scans live sources for AI/security signals, triages each one, and transmits only what clears editorial threshold. Every scan plots its verdicts on the array.</p>
       <div class="legend">
         <span><span class="dot" style="background:var(--signal)"></span>PUBLISHED</span>
         <span><span class="dot" style="background:var(--rose)"></span>REJECTED</span>
@@ -166,7 +168,25 @@
 <script src="shared.js"></script>
 <script>
   tickClock("clock");
-  renderAgentTag("agentIdDisplay");
+
+  function onProfileChange() {
+    resetDashboardStats();
+    refreshStats();
+    loadLastScanBlips();
+  }
+
+  function resetDashboardStats() {
+    document.getElementById("statPublished").textContent = "0";
+    document.getElementById("statRejected").textContent = "0";
+    document.getElementById("statAcceptRate").textContent = "—";
+    document.getElementById("statChecked").textContent = "0";
+    document.getElementById("barPublished").style.width = "0%";
+    document.getElementById("barRejected").style.width = "0%";
+    document.getElementById("barAccept").style.width = "0%";
+    document.getElementById("barChecked").style.width = "0%";
+    document.querySelectorAll(".blip").forEach(b => b.remove());
+    setStatus("");
+  }
 
   function setStatus(msg, cls) {
     const el = document.getElementById("consoleStatus");
@@ -177,7 +197,8 @@
   function plotBlips(decisions) {
     const circle = document.getElementById("radarCircle");
     document.querySelectorAll(".blip").forEach(b => b.remove());
-    const count = decisions.length || 1;
+    if (!decisions || decisions.length === 0) return;
+    const count = decisions.length;
     decisions.forEach((d, i) => {
       const angle = (360 / count) * i - 90;
       const radiusPct = 30 + Math.random() * 55;
@@ -195,22 +216,53 @@
   }
 
   async function refreshStats() {
+    const pid = getSelectedProfileId();
+    if (pid === "all") return;
+    if (!getAgentId(pid)) return;
     try {
-      const data = await apiFeed();
+      const data = await apiFeed(pid);
       const posts = data.posts || [];
       document.getElementById("statPublished").textContent = posts.length;
       document.getElementById("barPublished").style.width = Math.min(posts.length * 10, 100) + "%";
     } catch (e) { /* silent on dashboard load */ }
   }
 
+  async function loadLastScanBlips() {
+    const pid = getSelectedProfileId();
+    if (pid === "all") return;
+    if (!getAgentId(pid)) return;
+    try {
+      const data = await apiDecisions(pid);
+      const scan = data.scan;
+      if (scan && scan.decisions && scan.decisions.length > 0) {
+        plotBlips(scan.decisions);
+        const published = scan.decisions.filter(d => d.decision === "publish").length;
+        const rejected = scan.decisions.filter(d => d.decision === "reject").length;
+        const checked = scan.checked ?? scan.decisions.length;
+        const rate = scan.decisions.length ? Math.round((published / scan.decisions.length) * 100) : 0;
+        document.getElementById("statChecked").textContent = checked;
+        document.getElementById("statRejected").textContent = rejected;
+        document.getElementById("statAcceptRate").textContent = rate + "%";
+        document.getElementById("barChecked").style.width = Math.min(checked * 10, 100) + "%";
+        document.getElementById("barRejected").style.width = Math.min(rejected * 10, 100) + "%";
+        document.getElementById("barAccept").style.width = rate + "%";
+      }
+    } catch (e) { /* silent */ }
+  }
+
   async function handleInit() {
+    const pid = getSelectedProfileId();
+    if (pid === "all") {
+      setStatus("Select a specific unit (e.g. ADA, NOVA, LYRA) to initialize.", "err");
+      return;
+    }
     const btn = document.getElementById("initBtn");
     btn.disabled = true;
     setStatus("Initializing unit…");
     try {
-      const id = await apiInit();
-      renderAgentTag("agentIdDisplay");
-      setStatus(`Unit online: ${id}`, "ok");
+      const { unitId } = await apiInit(pid);
+      applyProfileUI();
+      setStatus(`Unit online: ${unitId}`, "ok");
       await refreshStats();
     } catch (err) {
       setStatus(`Init failed: ${err.message}`, "err");
@@ -220,11 +272,20 @@
   }
 
   async function handleScan() {
+    const pid = getSelectedProfileId();
+    if (pid === "all") {
+      setStatus("Select a specific unit to run a scan.", "err");
+      return;
+    }
     const btn = document.getElementById("scanBtn");
+    if (!getAgentId(pid)) {
+      setStatus("Initialize this profile first.", "err");
+      return;
+    }
     btn.disabled = true;
     setStatus("Scanning live sources…");
     try {
-      const data = await apiGenerate();
+      const data = await apiGenerate(pid);
       const decisions = data.evaluations || [];
       const published = decisions.filter(d => d.decision === "publish").length;
       const rejected = decisions.filter(d => d.decision === "reject").length;
@@ -248,7 +309,10 @@
     }
   }
 
-  if (getAgentId()) refreshStats();
+  if (getAgentId()) {
+    refreshStats();
+    loadLastScanBlips();
+  }
 </script>
 
 </body>
