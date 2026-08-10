@@ -127,6 +127,13 @@ function tickClock(elId) {
 function renderAgentTag(elId) {
   const el = document.getElementById(elId);
   if (!el) return;
+  const selected = getSelectedProfileId();
+  if (selected === "all") {
+    const agents = getProfileAgents();
+    const count = Object.keys(agents).length;
+    el.textContent = count > 0 ? `${count}/6 UNITS ONLINE` : "ALL UNITS (NOT INITIALIZED)";
+    return;
+  }
   el.textContent = getUnitId() || "not initialized";
 }
 

@@ -134,7 +134,7 @@
   </div>
 
   <div class="console">
-    <button class="btn btn-primary" id="initBtn" onclick="handleInit()">⏻ INITIALIZE</button>
+    <button class="btn btn-primary" id="initBtn" onclick="handleInit()">⚡ INITIALIZE</button>
     <button class="btn" id="scanBtn" onclick="handleScan()">◎ SCAN &amp; TRANSMIT</button>
     <div class="agent-tag">UNIT ID: <b id="agentIdDisplay">not initialized</b></div>
   </div>
@@ -217,7 +217,15 @@
 
   async function refreshStats() {
     const pid = getSelectedProfileId();
-    if (pid === "all") return;
+    if (pid === "all") {
+      try {
+        const data = await apiFeed("all");
+        const posts = data.posts || [];
+        document.getElementById("statPublished").textContent = posts.length;
+        document.getElementById("barPublished").style.width = Math.min(posts.length * 5, 100) + "%";
+      } catch (e) { /* silent */ }
+      return;
+    }
     if (!getAgentId(pid)) return;
     try {
       const data = await apiFeed(pid);
@@ -229,7 +237,32 @@
 
   async function loadLastScanBlips() {
     const pid = getSelectedProfileId();
-    if (pid === "all") return;
+    if (pid === "all") {
+      try {
+        const data = await apiDecisions("all");
+        const scans = data.scans || [];
+        const allDecisions = [];
+        let totalChecked = 0;
+        scans.forEach(s => {
+          if (s.decisions) allDecisions.push(...s.decisions);
+          totalChecked += (s.checked ?? (s.decisions ? s.decisions.length : 0));
+        });
+        if (allDecisions.length > 0) {
+          plotBlips(allDecisions);
+          const published = allDecisions.filter(d => d.decision === "publish").length;
+          const rejected = allDecisions.filter(d => d.decision === "reject").length;
+          const checked = totalChecked || allDecisions.length;
+          const rate = allDecisions.length ? Math.round((published / allDecisions.length) * 100) : 0;
+          document.getElementById("statChecked").textContent = checked;
+          document.getElementById("statRejected").textContent = rejected;
+          document.getElementById("statAcceptRate").textContent = rate + "%";
+          document.getElementById("barChecked").style.width = Math.min(checked * 3, 100) + "%";
+          document.getElementById("barRejected").style.width = Math.min(rejected * 3, 100) + "%";
+          document.getElementById("barAccept").style.width = rate + "%";
+        }
+      } catch (e) { /* silent */ }
+      return;
+    }
     if (!getAgentId(pid)) return;
     try {
       const data = await apiDecisions(pid);
@@ -253,7 +286,25 @@
   async function handleInit() {
     const pid = getSelectedProfileId();
     if (pid === "all") {
-      setStatus("Select a specific unit (e.g. ADA, NOVA, LYRA) to initialize.", "err");
+      const btn = document.getElementById("initBtn");
+      btn.disabled = true;
+      setStatus("Initializing all 6 monitoring units…");
+      try {
+        let initializedCount = 0;
+        for (const p of PROFILES) {
+          if (!getAgentId(p.id)) {
+            await apiInit(p.id);
+            initializedCount++;
+          }
+        }
+        applyProfileUI();
+        setStatus(`All 6 units initialized & online! (${initializedCount} newly online)`, "ok");
+        await refreshStats();
+      } catch (err) {
+        setStatus(`Init failed: ${err.message}`, "err");
+      } finally {
+        btn.disabled = false;
+      }
       return;
     }
     const btn = document.getElementById("initBtn");
@@ -274,9 +325,68 @@
   async function handleScan() {
     const pid = getSelectedProfileId();
     if (pid === "all") {
-      setStatus("Select a specific unit to run a scan.", "err");
+      const btn = document.getElementById("scanBtn");
+      btn.disabled = true;
+      setStatus("Auto-initializing units & running global scan across all models…");
+      try {
+        // Auto-initialize any uninitialized profiles
+        for (const p of PROFILES) {
+          if (!getAgentId(p.id)) {
+            await apiInit(p.id);
+          }
+        }
+        applyProfileUI();
+
+        // Run scan across all 6 models concurrently
+        const results = await Promise.allSettled(PROFILES.map(p => apiGenerate(p.id)));
+
+        const allDecisions = [];
+        let totalChecked = 0;
+        let totalPublished = 0;
+        let totalRejected = 0;
+        const publishedModels = [];
+
+        results.forEach((res, idx) => {
+          const profile = PROFILES[idx];
+          if (res.status === "fulfilled") {
+            const data = res.value;
+            const decisions = data.evaluations || [];
+            allDecisions.push(...decisions);
+            const pubCount = decisions.filter(d => d.decision === "publish").length;
+            const rejCount = decisions.filter(d => d.decision === "reject").length;
+            totalChecked += (data.checked ?? decisions.length);
+            totalPublished += pubCount;
+            totalRejected += rejCount;
+            if (pubCount > 0) {
+              publishedModels.push(profile.name);
+            }
+          }
+        });
+
+        plotBlips(allDecisions);
+
+        const rate = allDecisions.length ? Math.round((totalPublished / allDecisions.length) * 100) : 0;
+        document.getElementById("statChecked").textContent = totalChecked;
+        document.getElementById("statRejected").textContent = totalRejected;
+        document.getElementById("statAcceptRate").textContent = rate + "%";
+        document.getElementById("barChecked").style.width = Math.min(totalChecked * 3, 100) + "%";
+        document.getElementById("barRejected").style.width = Math.min(totalRejected * 3, 100) + "%";
+        document.getElementById("barAccept").style.width = rate + "%";
+
+        const bestMsg = publishedModels.length > 0
+          ? `Auto-selected best signals from [${publishedModels.join(", ")}]`
+          : `Strict editorial standard maintained across network`;
+
+        setStatus(`Global scan complete — ${bestMsg} (${totalPublished} transmitted, ${totalRejected} rejected across 6 models).`, "ok");
+        await refreshStats();
+      } catch (err) {
+        setStatus(`Global scan failed: ${err.message}`, "err");
+      } finally {
+        btn.disabled = false;
+      }
       return;
     }
+
     const btn = document.getElementById("scanBtn");
     if (!getAgentId(pid)) {
       setStatus("Initialize this profile first.", "err");
