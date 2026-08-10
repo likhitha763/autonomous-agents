@@ -320,3 +320,101 @@ main {
   border: 1px dashed var(--grid);
   border-radius: 6px;
 }
+
+/* Telemetry Signal Spectrum Widget */
+.telemetry-widget {
+  margin-left: auto;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 16px 20px;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 0 24px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.telemetry-widget:hover {
+  border-color: var(--signal-dim);
+}
+
+.telemetry-widget::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--signal), transparent);
+  animation: scan-line 3s linear infinite;
+}
+
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.telemetry-header {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--signal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spectrum-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 44px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.spectrum-bar {
+  flex: 1;
+  background: var(--signal-dim);
+  border-radius: 2px;
+  animation: bar-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.spectrum-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.spectrum-bar:nth-child(2) { height: 75%; animation-delay: 0.3s; }
+.spectrum-bar:nth-child(3) { height: 30%; animation-delay: 0.5s; }
+.spectrum-bar:nth-child(4) { height: 90%; animation-delay: 0.2s; }
+.spectrum-bar:nth-child(5) { height: 50%; animation-delay: 0.4s; }
+.spectrum-bar:nth-child(6) { height: 85%; animation-delay: 0.6s; }
+.spectrum-bar:nth-child(7) { height: 35%; animation-delay: 0.15s; }
+.spectrum-bar:nth-child(8) { height: 65%; animation-delay: 0.45s; }
+.spectrum-bar:nth-child(9) { height: 95%; animation-delay: 0.25s; }
+.spectrum-bar:nth-child(10) { height: 45%; animation-delay: 0.55s; }
+.spectrum-bar:nth-child(11) { height: 80%; animation-delay: 0.35s; }
+.spectrum-bar:nth-child(12) { height: 60%; animation-delay: 0.65s; }
+
+@keyframes bar-pulse {
+  0% { transform: scaleY(0.3); background: rgba(57,233,145,0.2); }
+  50% { background: var(--signal); box-shadow: 0 0 6px var(--signal); }
+  100% { transform: scaleY(1); background: var(--signal); }
+}
+
+.telemetry-metrics {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.telemetry-metrics span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.telemetry-metrics b {
+  color: var(--text);
+  font-weight: 400;
+}
