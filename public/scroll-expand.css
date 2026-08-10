@@ -1,0 +1,120 @@
+.scroll-expand-container {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  margin-bottom: 32px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--grid);
+  background: var(--panel);
+}
+
+.scroll-expand {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-expand--scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+
+.scroll-expand--scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-expand__track {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-expand__stage {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  --se-title-size: 2rem;
+}
+
+.scroll-expand__frame {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(18% 25% 18% 25% round 20px);
+  will-change: clip-path;
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
+}
+
+.scroll-expand__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scroll-expand__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 14, 15, 0.9), rgba(10, 14, 15, 0.3) 45%, rgba(0, 0, 0, 0.6));
+  opacity: 0;
+}
+
+.scroll-expand__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4%;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.scroll-expand__title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 4%;
+  text-align: center;
+  font-size: var(--se-title-size);
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.scroll-expand__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  color: var(--signal);
+  pointer-events: none;
+  will-change: opacity, transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
